@@ -4,6 +4,7 @@ import (
 	"encoding/csv"
 	"fmt"
 	"os"
+	"strconv"
 
 	"github.com/infinimesh/tn_fake_feeder/pkg/db"
 )
@@ -25,9 +26,10 @@ func main() {
 			fmt.Println("EOF or different error", err.Error())
 			return
 		}
+		lat, _ := strconv.ParseFloat(line[0], 64)
+		lng, _ := strconv.ParseFloat(line[1], 64)
 		db.DB.Create(&db.Point{
-			Lat: line[0],
-			Lng: line[1],
+			Lat: lat, Lng: lng,
 		})
 	}
 }

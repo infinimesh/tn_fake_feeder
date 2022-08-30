@@ -32,6 +32,10 @@ type Config struct {
 	Token    string `yaml:"token"`
 }
 
+func init() {
+	rand.Seed(time.Now().UnixNano())
+}
+
 func main() {
 	n_trucks := 1
 	if len(os.Args) < 2 {
@@ -88,7 +92,7 @@ func main() {
 		Uuid: namespace,
 	})
 	if err != nil {
-		panic(fmt.Errorf("Error retrieving Namespace: %v", err))
+		panic(fmt.Errorf("error retrieving Namespace: %v", err))
 	}
 	if ns.Access.Level < 3 {
 		panic("Not enough Access Rights to Create Devices in choosen Namespace")
@@ -101,6 +105,14 @@ func main() {
 
 	rows := db.Point.Count(db.Point{})
 	fmt.Printf("Amount of waypoints found: %d\n", rows)
+
+	var retrieve_func = func(p int64) (r db.Point, _ int64) {
+		db.DB.First(&r, p)
+		if p >= rows {
+			return r, 1
+		}
+		return r, p + 1
+	}
 
 	wg := sync.WaitGroup{}
 
@@ -128,10 +140,12 @@ func main() {
 			}
 		}(res.GetDevice())
 
-		truck := &common.Truck{}
-		truck.Uuid = res.GetDevice().GetUuid()
-		truck.Point = rand.Int63n(rows)
-		truck.Speed = time.Duration(rand.Intn(10)) * time.Second
+		truck := &common.Truck{
+			Uuid:  res.GetDevice().GetUuid(),
+			Point: rand.Int63n(rows),
+			Speed: time.Duration(rand.Intn(10)) * time.Second,
+			Move:  retrieve_func,
+		}
 
 		wg.Add(1)
 		pool = append(pool, truck)

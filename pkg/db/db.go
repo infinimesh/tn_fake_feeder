@@ -8,8 +8,8 @@ import (
 var DB *gorm.DB
 
 type Point struct {
-	Lat string
-	Lng string
+	Lat float64
+	Lng float64
 
 	gorm.Model
 }
