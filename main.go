@@ -3,6 +3,7 @@ package main
 import (
 	"context"
 	"crypto/tls"
+	"encoding/json"
 	"fmt"
 	"math/rand"
 	"os"
@@ -15,15 +16,16 @@ import (
 	"github.com/infinimesh/tn_fake_feeder/pkg/common"
 	"github.com/infinimesh/tn_fake_feeder/pkg/db"
 
+	pb "github.com/infinimesh/proto/node"
+	devpb "github.com/infinimesh/proto/node/devices"
+	"github.com/infinimesh/proto/node/namespaces"
+	"github.com/infinimesh/proto/shadow"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/credentials"
 	"google.golang.org/grpc/credentials/insecure"
 	"google.golang.org/grpc/metadata"
+	"google.golang.org/protobuf/types/known/structpb"
 	"gopkg.in/yaml.v2"
-
-	pb "github.com/infinimesh/proto/node"
-	devpb "github.com/infinimesh/proto/node/devices"
-	"github.com/infinimesh/proto/node/namespaces"
 )
 
 type Config struct {
@@ -99,7 +101,7 @@ func main() {
 	}
 
 	devc := pb.NewDevicesServiceClient(conn)
-	// shad := pb.NewShadowServiceClient(conn)
+	shad := pb.NewShadowServiceClient(conn)
 
 	fmt.Println("gRPC Connection Established")
 
@@ -114,9 +116,26 @@ func main() {
 		return r, p + 1
 	}
 
-	wg := sync.WaitGroup{}
+	var postCtx context.Context
+	var report_func = func(uuid string, report common.TruckReport) {
+		jsonb, _ := json.Marshal(report)
+		data := &structpb.Struct{}
+		data.UnmarshalJSON(jsonb)
 
-	var pool []*common.Truck
+		_, err := shad.Patch(postCtx, &shadow.Shadow{
+			Device: uuid,
+			Reported: &shadow.State{
+				Data: data,
+			},
+		})
+		if err != nil {
+			fmt.Printf("[WARN] Couldn't patch Reported state for device %s: %v", uuid, err)
+		}
+	}
+
+	pool := make([]*common.Truck, n_trucks)
+	uuids := make([]string, n_trucks)
+
 	for i := 0; i < n_trucks; i++ {
 		res, err := devc.Create(ctx, &devpb.CreateRequest{
 			Device: &devpb.Device{
@@ -144,11 +163,29 @@ func main() {
 			Uuid:  res.GetDevice().GetUuid(),
 			Point: rand.Int63n(rows),
 			Speed: time.Duration(rand.Intn(10)) * time.Second,
-			Move:  retrieve_func,
+
+			Move:   retrieve_func,
+			Report: report_func,
 		}
 
+		pool[i] = truck
+		uuids[i] = truck.Uuid
+	}
+
+	res, err := devc.MakeDevicesToken(ctx, &pb.DevicesTokenRequest{
+		Devices: uuids,
+		Post:    true,
+	})
+	if err != nil {
+		fmt.Printf("Error generating token: %v\n", err)
+		return
+	}
+
+	postCtx = metadata.AppendToOutgoingContext(context.Background(), "Authorization", "Bearer "+res.GetToken())
+
+	wg := sync.WaitGroup{}
+	for _, truck := range pool {
 		wg.Add(1)
-		pool = append(pool, truck)
 		go truck.Start(&wg)
 	}
 
