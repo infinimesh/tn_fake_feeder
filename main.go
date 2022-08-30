@@ -162,7 +162,7 @@ func main() {
 		truck := &common.Truck{
 			Uuid:  res.GetDevice().GetUuid(),
 			Point: rand.Int63n(rows),
-			Speed: time.Duration(rand.Intn(10)) * time.Second,
+			Speed: time.Duration(rand.Intn(5)+1) * time.Second,
 
 			Move:   retrieve_func,
 			Report: report_func,
