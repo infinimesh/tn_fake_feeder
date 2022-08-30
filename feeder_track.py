@@ -1,6 +1,6 @@
-
+# Feed fake data into platform
 # coding: utf-8
-# In[ ]:
+
 #from config import *
 
 import paho.mqtt.client as mqtt
@@ -15,6 +15,11 @@ def publish_value(client, topic, value):
     result = client.publish(topic="devices/b0ababba-cd99-404d-b5a0-62036d8407d5/state/reported/delta", payload=value, qos=2)
     return result
 
+#payload contruct
+
+
+
+
 if __name__ == "__main__":
     client = mqtt.Client(protocol=mqtt.MQTTv311)
     client.tls_set("pki/tls-ca-bundle.pem", "pki/truck04.crt", "pki/truck04.key", tls_version=ssl.PROTOCOL_TLSv1_2)
@@ -24,7 +29,8 @@ if __name__ == "__main__":
     client.loop_start()
     topic="devices/b0ababba-cd99-404d-b5a0-62036d8407d5/state/reported/delta"
     print_message = "{}:# {}"
-   
+
+
     while True:
         with open('track04_anver_leipzig_modif.csv') as csvfile:
             reader=csv.reader(csvfile)
