@@ -20,6 +20,8 @@ type Truck struct {
 	wg   *sync.WaitGroup
 }
 
+var TN_TIME_FORMAT = "2006-02-01T15:04:05.999Z"
+
 type TruckReport struct {
 	Gps  []float64 `json:"gps"`
 	Sent string    `json:"sent"`
@@ -38,7 +40,7 @@ func (t *Truck) Start(wg *sync.WaitGroup) {
 		fmt.Printf("Moving Truck %s to Point %d(%.4f, %.4f)\n", t.Uuid, t.Point, np.Lat, np.Lng)
 		t.Report(t.Uuid, TruckReport{
 			Gps:  []float64{np.Lng, np.Lat},
-			Sent: time.Now().Format(time.RFC3339),
+			Sent: time.Now().Format(TN_TIME_FORMAT),
 		})
 
 		t.Point = n
