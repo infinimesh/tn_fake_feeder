@@ -2,8 +2,11 @@ package common
 
 import (
 	"fmt"
+	"math/rand"
 	"sync"
 	"time"
+
+	"github.com/fatih/color"
 
 	"github.com/infinimesh/tn_fake_feeder/pkg/db"
 	wr "github.com/mroth/weightedrand"
@@ -27,6 +30,8 @@ type TruckReport struct {
 	Gps    []float64 `json:"gps"`
 	Sent   string    `json:"sent"`
 	Status string    `json:"status"`
+
+	Sats int `json:"sats"`
 }
 
 func (t *Truck) Stop() {
@@ -54,9 +59,11 @@ func (t *Truck) Start(wg *sync.WaitGroup) {
 				Gps:    []float64{np.Lat, np.Lng},
 				Sent:   time.Now().Format(TN_TIME_FORMAT),
 				Status: status.Key,
+
+				Sats: rand.Intn(8) + 4,
 			})
 		} else {
-			fmt.Printf("Truck(%s) is %s, won't report\n", t.Uuid, status.Key)
+			fmt.Printf("Truck(%s) is %s, won't report\n", t.Uuid, status.Output(status.Key))
 		}
 
 		time.Sleep(t.Speed)
@@ -64,7 +71,7 @@ func (t *Truck) Start(wg *sync.WaitGroup) {
 			break
 		}
 		if status.HoldStatus > hold {
-			fmt.Printf("Truck(%s) is in status %s, holding %d(%d left)\n", t.Uuid, status.Key, status.HoldStatus, status.HoldStatus-hold)
+			fmt.Printf("Truck(%s) is in status %s, holding %d(%d left)\n", t.Uuid, status.Output(status.Key), status.HoldStatus, status.HoldStatus-hold)
 			hold++
 		} else {
 			status = t.Status()
@@ -77,16 +84,17 @@ func (t *Truck) Start(wg *sync.WaitGroup) {
 
 type StatusWithProb struct {
 	Key        string
+	Output     func(a ...interface{}) string
 	SkipMove   bool
 	Report     bool
 	HoldStatus int
 }
 
 var status_chooser, _ = wr.NewChooser(
-	wr.Choice[StatusWithProb]{Item: StatusWithProb{"online", false, true, 0}, Weight: 80},
-	wr.Choice[StatusWithProb]{Item: StatusWithProb{"inactive", true, true, 20}, Weight: 10},
-	wr.Choice[StatusWithProb]{Item: StatusWithProb{"offline", false, true, 10}, Weight: 7},
-	wr.Choice[StatusWithProb]{Item: StatusWithProb{"dead_offline", true, false, 10}, Weight: 3},
+	wr.Choice[StatusWithProb]{Item: StatusWithProb{"online", color.New(color.FgHiGreen).SprintFunc(), false, true, 1}, Weight: 80},
+	wr.Choice[StatusWithProb]{Item: StatusWithProb{"inactive", color.New(color.FgYellow).SprintFunc(), true, true, 20}, Weight: 10},
+	wr.Choice[StatusWithProb]{Item: StatusWithProb{"offline", color.New(color.FgRed).SprintFunc(), false, true, 10}, Weight: 7},
+	wr.Choice[StatusWithProb]{Item: StatusWithProb{"dead_offline", color.New(color.FgRed, color.BgWhite).SprintFunc(), true, false, 10}, Weight: 3},
 )
 
 func (t *Truck) Status() StatusWithProb {
