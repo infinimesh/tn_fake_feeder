@@ -13,7 +13,7 @@ require (
 )
 
 require (
-	github.com/fatih/color v1.13.0 // indirect
+	github.com/fatih/color v1.13.0
 	github.com/golang/protobuf v1.5.2 // indirect
 	github.com/grpc-ecosystem/grpc-gateway/v2 v2.10.3 // indirect
 	github.com/jinzhu/inflection v1.0.0 // indirect
