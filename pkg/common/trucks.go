@@ -39,9 +39,7 @@ func (t *Truck) Start(wg *sync.WaitGroup) {
 		np, n := t.Move(t.Point)
 		fmt.Printf("Moving Truck %s to Point %d(%.4f, %.4f)\n", t.Uuid, t.Point, np.Lat, np.Lng)
 		t.Report(t.Uuid, TruckReport{
-			Gps:  []float64{np.Lng, np.Lat},
-			Sent: time.Now().Format(TN_TIME_FORMAT),
-		})
+				Gps:    []float64{np.Lat, np.Lng},
 
 		t.Point = n
 		time.Sleep(t.Speed)
