@@ -3,6 +3,7 @@ package common
 import (
 	"fmt"
 	"math/rand"
+	"strconv"
 	"sync"
 	"time"
 
@@ -31,7 +32,8 @@ type TruckReport struct {
 	Sent   string    `json:"sent"`
 	Status string    `json:"status"`
 
-	Sats int `json:"sats"`
+	Sats int      `json:"sats"`
+	Cell []string `json:"cell"`
 }
 
 func (t *Truck) Stop() {
@@ -61,6 +63,7 @@ func (t *Truck) Start(wg *sync.WaitGroup) {
 				Status: status.Key,
 
 				Sats: rand.Intn(8) + 4,
+				Cell: t.Cell(),
 			})
 		} else {
 			fmt.Printf("Truck(%s) is %s, won't report\n", t.Uuid, status.Output(status.Key))
@@ -100,4 +103,31 @@ var status_chooser, _ = wr.NewChooser(
 func (t *Truck) Status() StatusWithProb {
 	s := status_chooser.Pick()
 	return s
+}
+
+var cell_chooser, _ = wr.NewChooser(
+	wr.Choice[string]{Item: "Telekom", Weight: 944},
+	wr.Choice[string]{Item: "vodafone.de", Weight: 913},
+	wr.Choice[string]{Item: "O2", Weight: 874},
+)
+
+var cell_protocol_chooser, _ = wr.NewChooser(
+	wr.Choice[string]{Item: "offline", Weight: 5},
+	wr.Choice[string]{Item: "5G", Weight: 30},
+	wr.Choice[string]{Item: "4G", Weight: 40},
+	wr.Choice[string]{Item: "3G", Weight: 20},
+	wr.Choice[string]{Item: "2G", Weight: 5},
+)
+
+func (t *Truck) Cell() []string {
+	proto := cell_protocol_chooser.Pick()
+	if proto == "offline" {
+		return []string{}
+	}
+
+	return []string{
+		proto,
+		cell_chooser.Pick(),
+		strconv.Itoa(rand.Intn(1200) - 600),
+	}
 }
