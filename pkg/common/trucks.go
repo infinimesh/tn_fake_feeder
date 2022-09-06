@@ -28,6 +28,8 @@ type Truck struct {
 var TN_TIME_FORMAT = "2006-02-01T15:04:05.999Z"
 
 type TruckReport struct {
+	Alarm [][]string `json:"alarm"`
+
 	Gps    []float64 `json:"gps"`
 	Sent   string    `json:"sent"`
 	Status string    `json:"status"`
@@ -39,6 +41,8 @@ type TruckReport struct {
 func (t *Truck) Stop() {
 	t.stop = true
 }
+
+var ALERT = color.New(color.FgRed, color.BgWhite).SprintFunc()
 
 func (t *Truck) Start(wg *sync.WaitGroup) {
 	t.stop = false
@@ -56,8 +60,15 @@ func (t *Truck) Start(wg *sync.WaitGroup) {
 		fmt.Printf("Moving Truck %s to Point %d(%.4f, %.4f)\n", t.Uuid, t.Point, np.Lat, np.Lng)
 		t.Point = n
 
+		alarmr := [][]string{}
+		if alarm := t.Alarm(); alarm != nil {
+			fmt.Printf("%s Truck %s alarm fired, type: %s %s\n", ALERT("[ALARM]"), t.Uuid, alarm[1], ALERT("[ALARM]"))
+			alarmr = append(alarmr, alarm)
+		}
+
 		if status.Report {
 			t.Report(t.Uuid, TruckReport{
+				Alarm:  alarmr,
 				Gps:    []float64{np.Lat, np.Lng},
 				Sent:   time.Now().Format(TN_TIME_FORMAT),
 				Status: status.Key,
@@ -130,4 +141,32 @@ func (t *Truck) Cell() []string {
 		cell_chooser.Pick(),
 		strconv.Itoa(rand.Intn(1200) - 600),
 	}
+}
+
+var alarm, _ = wr.NewChooser(
+	wr.Choice[string]{Item: "", Weight: 80},
+	wr.Choice[string]{Item: "manual", Weight: 10},
+	wr.Choice[string]{Item: "left", Weight: 5},
+	wr.Choice[string]{Item: "right", Weight: 5},
+)
+
+func (t *Truck) Alarm() []string {
+	a := alarm.Pick()
+	if a == "" {
+		return nil
+	}
+
+	result := []string{time.Now().Format(TN_TIME_FORMAT), a}
+	if a == "manual" {
+		return result
+	}
+
+	prob := rand.Intn(100)
+	if prob < 80 {
+		result = append(result, "pre")
+		return result
+	}
+
+	result = append(result, strconv.Itoa(prob))
+	return result
 }
