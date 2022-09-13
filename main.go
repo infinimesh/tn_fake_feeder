@@ -38,6 +38,10 @@ var (
 	fk faker.Faker
 )
 
+var country_codes = []string{
+	"D", "NL", "PL", "FIN", "BY",
+}
+
 func init() {
 	rand.Seed(time.Now().UnixNano())
 
@@ -144,13 +148,15 @@ func main() {
 
 	for i := 0; i < n_trucks; i++ {
 
+		country := fk.RandomStringElement(country_codes)
+
 		tags := []string{
 			"tn:simulated",
-			fmt.Sprintf("tn:number_plate_truck:%s", fk.Car().Plate()),
+			fmt.Sprintf("tn:number_plate_truck:%s_%s", country, fk.Car().Plate()),
 		}
 
 		if rand.Intn(10)%2 == 0 {
-			tags = append(tags, fmt.Sprintf("tn:number_plate_trailer:%s", fk.Car().Plate()))
+			tags = append(tags, fmt.Sprintf("tn:number_plate_trailer:%s_%s", country, fk.Car().Plate()))
 		}
 
 		res, err := devc.Create(ctx, &devpb.CreateRequest{
