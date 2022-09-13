@@ -12,6 +12,8 @@ require (
 	gorm.io/gorm v1.23.8
 )
 
+require github.com/jaswdr/faker v1.15.0 // indirect
+
 require (
 	github.com/fatih/color v1.13.0
 	github.com/golang/protobuf v1.5.2 // indirect

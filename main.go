@@ -13,13 +13,13 @@ import (
 	"sync"
 	"time"
 
-	"github.com/infinimesh/tn_fake_feeder/pkg/common"
-	"github.com/infinimesh/tn_fake_feeder/pkg/db"
-
 	pb "github.com/infinimesh/proto/node"
 	devpb "github.com/infinimesh/proto/node/devices"
 	"github.com/infinimesh/proto/node/namespaces"
 	"github.com/infinimesh/proto/shadow"
+	"github.com/infinimesh/tn_fake_feeder/pkg/common"
+	"github.com/infinimesh/tn_fake_feeder/pkg/db"
+	faker "github.com/jaswdr/faker"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/credentials"
 	"google.golang.org/grpc/credentials/insecure"
@@ -34,8 +34,14 @@ type Config struct {
 	Token    string `yaml:"token"`
 }
 
+var (
+	fk faker.Faker
+)
+
 func init() {
 	rand.Seed(time.Now().UnixNano())
+
+	fk = faker.New()
 }
 
 func main() {
@@ -137,11 +143,21 @@ func main() {
 	uuids := make([]string, n_trucks)
 
 	for i := 0; i < n_trucks; i++ {
+
+		tags := []string{
+			"tn:simulated",
+			fmt.Sprintf("tn:number_plate_truck:%s", fk.Car().Plate()),
+		}
+
+		if rand.Intn(10)%2 == 0 {
+			tags = append(tags, fmt.Sprintf("tn:number_plate_trailer:%s", fk.Car().Plate()))
+		}
+
 		res, err := devc.Create(ctx, &devpb.CreateRequest{
 			Device: &devpb.Device{
 				Title:   fmt.Sprintf("sim-truck-%d", i),
 				Enabled: true,
-				Tags:    []string{"tn:simulated"},
+				Tags:    tags,
 				Certificate: &devpb.Certificate{
 					PemData: common.SAMPLE_CERT,
 				},
