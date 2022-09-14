@@ -39,13 +39,27 @@ var (
 )
 
 var country_codes = []string{
-	"D", "NL", "PL", "FIN", "BY",
+	"A", "B", "D", "NL", "PL", "FIN", "BY",
 }
+
+const letters = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789"
 
 func init() {
 	rand.Seed(time.Now().UnixNano())
 
 	fk = faker.New()
+}
+
+func StringWithCharset(length int, charset string) string {
+	b := make([]byte, length)
+	for i := range b {
+		b[i] = charset[rand.Intn(len(charset))]
+	}
+	return string(b)
+}
+
+func String(length int) string {
+	return StringWithCharset(length, letters)
 }
 
 func main() {
@@ -149,14 +163,15 @@ func main() {
 	for i := 0; i < n_trucks; i++ {
 
 		country := fk.RandomStringElement(country_codes)
+		number := String(rand.Intn(6) + 3)
 
 		tags := []string{
 			"tn:simulated",
-			fmt.Sprintf("tn:number_plate_truck:%s_%s", country, fk.Car().Plate()),
+			fmt.Sprintf("tn:number_plate_truck:%s_%s", country, number),
 		}
 
 		if rand.Intn(10)%2 == 0 {
-			tags = append(tags, fmt.Sprintf("tn:number_plate_trailer:%s_%s", country, fk.Car().Plate()))
+			tags = append(tags, fmt.Sprintf("tn:number_plate_trailer:%s_%s", country, String(rand.Intn(6)+3)))
 		}
 
 		res, err := devc.Create(ctx, &devpb.CreateRequest{
