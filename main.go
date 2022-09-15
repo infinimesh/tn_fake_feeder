@@ -39,10 +39,10 @@ var (
 )
 
 var country_codes = []string{
-	"A", "B", "D", "NL", "PL", "FIN", "BY",
+	"A", "B", "D", "NL", "PL", "BY", "UA",
 }
 
-const letters = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789"
+const letters = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789 -"
 
 func init() {
 	rand.Seed(time.Now().UnixNano())
