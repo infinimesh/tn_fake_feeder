@@ -20,6 +20,7 @@ import (
 	"github.com/infinimesh/tn_fake_feeder/pkg/common"
 	"github.com/infinimesh/tn_fake_feeder/pkg/db"
 	faker "github.com/jaswdr/faker"
+	"github.com/slntopp/vrp-faker"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/credentials"
 	"google.golang.org/grpc/credentials/insecure"
@@ -39,27 +40,13 @@ var (
 )
 
 var country_codes = []string{
-	"A", "B", "D", "NL", "PL", "BY", "UA",
+	"B", "DE", "NL", "BY", "UA",
 }
-
-const letters = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789 -"
 
 func init() {
 	rand.Seed(time.Now().UnixNano())
 
 	fk = faker.New()
-}
-
-func StringWithCharset(length int, charset string) string {
-	b := make([]byte, length)
-	for i := range b {
-		b[i] = charset[rand.Intn(len(charset))]
-	}
-	return string(b)
-}
-
-func String(length int) string {
-	return StringWithCharset(length, letters)
 }
 
 func main() {
@@ -162,16 +149,21 @@ func main() {
 
 	for i := 0; i < n_trucks; i++ {
 
-		country := fk.RandomStringElement(country_codes)
-		number := String(rand.Intn(6) + 3)
+		cc := fk.RandomStringElement(country_codes)
+		gen, ok := vrp.Generators[cc]
+		if !ok {
+			panic(fmt.Errorf("couldn't find generator for country code: %s", cc))
+		}
+		plate := gen()
 
 		tags := []string{
 			"tn:simulated",
-			fmt.Sprintf("tn:number_plate_truck:%s_%s", country, number),
+			fmt.Sprintf("tn:number_plate_truck:%s_%s", plate.Country, plate.Number),
 		}
 
 		if rand.Intn(10)%2 == 0 {
-			tags = append(tags, fmt.Sprintf("tn:number_plate_trailer:%s_%s", country, String(rand.Intn(6)+3)))
+			plate = gen()
+			tags = append(tags, fmt.Sprintf("tn:number_plate_trailer:%s_%s", plate.Country, plate.Number))
 		}
 
 		res, err := devc.Create(ctx, &devpb.CreateRequest{

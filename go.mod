@@ -12,7 +12,10 @@ require (
 	gorm.io/gorm v1.23.8
 )
 
-require github.com/jaswdr/faker v1.15.0 // indirect
+require (
+	github.com/jaswdr/faker v1.15.0 // indirect
+	github.com/slntopp/vrp-faker v0.0.1 // indirect
+)
 
 require (
 	github.com/fatih/color v1.13.0
