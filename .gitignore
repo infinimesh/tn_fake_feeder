@@ -1,3 +1,2 @@
-tmp/tn-feeder
-tmp/tn-feeder-v0.0.0-linux-amd64.tar.gz
-tmp/track.db
+tmp/*
+tn_fake_feeder
