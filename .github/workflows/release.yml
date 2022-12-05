@@ -53,7 +53,7 @@ jobs:
           for binary in ./build/*; do
               name=$(basename $binary)
               echo "Packing $name"
-              tar -czvf $name.tar.gz $binary README.md track.db
+              tar -czf $name.tar.gz $binary README.md track.db
           done
 
       - name: Release
