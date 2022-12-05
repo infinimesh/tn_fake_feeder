@@ -45,6 +45,14 @@ jobs:
           name: Executables
           path: ./build/
 
+      - name: Prepare Release Archives
+        run: |
+          for binary in ./build/*; do
+              name=$(basename $binary)
+              echo "Packing $name"
+              tar -czvf $name.tar.gz $binary README.md track.db
+          done
+
       - name: Release
         uses: softprops/action-gh-release@v1
         if: startsWith(github.ref, 'refs/tags/')
@@ -52,9 +60,9 @@ jobs:
           token: ${{ secrets.GITHUB_TOKEN }}
           append_body: true
           files: |
-            ./build/tn-feeder-linux-amd64
-            ./build/tn-feeder-linux-arm64
-            ./build/tn-feeder-darwin-amd64
-            ./build/tn-feeder-darwin-arm64
+            ./tn-feeder-linux-amd64.tar.gz
+            ./tn-feeder-linux-arm64.tar.gz
+            ./tn-feeder-darwin-amd64.tar.gz
+            ./tn-feeder-darwin-arm64.tar.gz
         env:
           GITHUB_REPOSITORY: infinimesh/tn_fake_feeder
