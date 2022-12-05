@@ -37,7 +37,10 @@ jobs:
           upx ./build/* >> $GITHUB_STEP_SUMMARY
           echo '```' >> $GITHUB_STEP_SUMMARY
           echo "" >> $GITHUB_STEP_SUMMARY
-          echo "Compression completed, result: \`$(du -h ./build/*)\`" >> $GITHUB_STEP_SUMMARY
+          echo "Compression completed, result:" >> $GITHUB_STEP_SUMMARY
+          echo '```' >> $GITHUB_STEP_SUMMARY
+          echo "$(du -h ./build/*)" >> $GITHUB_STEP_SUMMARY
+          echo '```' >> $GITHUB_STEP_SUMMARY
 
       - name: Upload Artifacts
         uses: actions/upload-artifact@v3
