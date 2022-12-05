@@ -29,18 +29,15 @@ jobs:
           buildmode: default
           trimpath: true
 
-      - name: Debug
+      - name: Compress
         run: |
-          echo "### Build Result" >> $GITHUB_STEP_SUMMARY
-          echo "```" >> $GITHUB_STEP_SUMMARY
-          echo $(ls -lh ./build) >> $GITHUB_STEP_SUMMARY
-          echo "```" >> $GITHUB_STEP_SUMMARY
-          echo "```" >> $GITHUB_STEP_SUMMARY
-          echo $(ls -lh /build) >> $GITHUB_STEP_SUMMARY
-          echo "```" >> $GITHUB_STEP_SUMMARY
-          echo "```" >> $GITHUB_STEP_SUMMARY
-          echo $(pwd) >> $GITHUB_STEP_SUMMARY
-          echo "```" >> $GITHUB_STEP_SUMMARY
+          echo '### Compress' >> $$GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo '```' >> $GITHUB_STEP_SUMMARY
+          upx ./build/* >> $GITHUB_STEP_SUMMARY
+          echo '```' >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "Compression completed, result: \`$(du -h ./build/*)\`" >> $GITHUB_STEP_SUMMARY
 
       # - name: Release
       #   uses: softprops/action-gh-release@v1
