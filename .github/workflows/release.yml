@@ -49,20 +49,20 @@ jobs:
       - run: |
           echo '### Make Release Archive' >> $$GITHUB_STEP_SUMMARY
           echo "" >> $GITHUB_STEP_SUMMARY
-          tar -czvf tn_fake_feeder_${{matrix.goos}}_${{matrix.goarch}}.tar.gz tn_fake_feeder track.db README.md
+          tar -czvf tn_fake_feeder_${{steps.make_context.outputs.tag}}_${{matrix.goos}}_${{matrix.goarch}}.tar.gz tn_fake_feeder track.db README.md
           echo "Completed, result: \`$(du -h *.tar.gz)\`" >> $GITHUB_STEP_SUMMARY
 
       - uses: actions/upload-artifact@v3
         with:
-          name: tn_fake_feeder_${{matrix.goos}}_${{matrix.goarch}}.tar.gz
-          path: tn_fake_feeder_${{matrix.goos}}_${{matrix.goarch}}.tar.gz
+          name: tn_fake_feeder_${{steps.make_context.outputs.tag}}_${{matrix.goos}}_${{matrix.goarch}}.tar.gz
+          path: tn_fake_feeder_${{steps.make_context.outputs.tag}}_${{matrix.goos}}_${{matrix.goarch}}.tar.gz
 
       - name: Release
         uses: softprops/action-gh-release@v1
         if: startsWith(github.ref, 'refs/tags/')
         with:
           token: ${{ secrets.GITHUB_TOKEN }}
-          files: tn_fake_feeder_${{matrix.goos}}_${{matrix.goarch}}.tar.gz
+          files: tn_fake_feeder_${{steps.make_context.outputs.tag}}_${{matrix.goos}}_${{matrix.goarch}}.tar.gz
           append_body: true
         env:
           GITHUB_REPOSITORY: infinimesh/tn_fake_feeder
