@@ -11,8 +11,8 @@ jobs:
     strategy:
       matrix:
         # build and publish in parallel: linux/386, linux/amd64, darwin/amd64, darwin/arm64
-        goos: [linux, darwin]
-        goarch: [amd64, arm64]
+        goos: [linux] #[linux, darwin]
+        goarch: [amd64] #[amd64, arm64]
     steps:
       - uses: actions/checkout@v3
       - name: Check Release Tag
