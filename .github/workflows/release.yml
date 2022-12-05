@@ -8,11 +8,6 @@ jobs:
   releases-matrix:
     name: Release Go Binary
     runs-on: ubuntu-latest
-    strategy:
-      matrix:
-        # build and publish in parallel: linux/386, linux/amd64, darwin/amd64, darwin/arm64
-        goos: [linux] #[linux, darwin]
-        goarch: [amd64] #[amd64, arm64]
     steps:
       - uses: actions/checkout@v3
       - name: Check Release Tag
@@ -25,17 +20,27 @@ jobs:
           xgo_version: latest
           go_version: 1.19
           dest: build
+          prefix: tn-feeder
           targets: darwin/amd64,linux/amd64,linux/arm64,darwin/arm64
           v: true
-          x: false
+          x: true
           race: false
           ldflags: -s -w
           buildmode: default
           trimpath: true
 
       - name: Debug
-        run: echo "### Build Result" >> $GITHUB_STEP_SUMMARY
-          echo $(ls -lh build) >> $GITHUB_STEP_SUMMARY
+        run: |
+          echo "### Build Result" >> $GITHUB_STEP_SUMMARY
+          echo "```" >> $GITHUB_STEP_SUMMARY
+          echo $(ls -lh ./build) >> $GITHUB_STEP_SUMMARY
+          echo "```" >> $GITHUB_STEP_SUMMARY
+          echo "```" >> $GITHUB_STEP_SUMMARY
+          echo $(ls -lh /build) >> $GITHUB_STEP_SUMMARY
+          echo "```" >> $GITHUB_STEP_SUMMARY
+          echo "```" >> $GITHUB_STEP_SUMMARY
+          echo $(pwd) >> $GITHUB_STEP_SUMMARY
+          echo "```" >> $GITHUB_STEP_SUMMARY
 
       # - name: Release
       #   uses: softprops/action-gh-release@v1
