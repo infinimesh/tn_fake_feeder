@@ -45,15 +45,16 @@ jobs:
           name: Executables
           path: ./build/
 
-      # - uses: wangyoucao577/go-release-action@v1.29
-      #   with:
-      #     github_token: ${{ secrets.GITHUB_TOKEN }}
-      #     goos: ${{ matrix.goos }}
-      #     goarch: ${{ matrix.goarch }}
-      #     overwrite: true
-      #     goversion: 1.19
-      #     ldflags: -s -w
-      #     executable_compression: upx
-      #     project_path: .
-      #     binary_name: "tn-feeder"
-      #     extra_files: track.db README.md
+      - name: Release
+        uses: softprops/action-gh-release@v1
+        if: startsWith(github.ref, 'refs/tags/')
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+          append_body: true
+          files: |
+            ./build/tn-feeder-linux-amd64
+            ./build/tn-feeder-linux-arm64
+            ./build/tn-feeder-darwin-amd64
+            ./build/tn-feeder-darwin-arm64
+        env:
+          GITHUB_REPOSITORY: infinimesh/tn_fake_feeder
