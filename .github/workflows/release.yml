@@ -39,14 +39,11 @@ jobs:
           echo "" >> $GITHUB_STEP_SUMMARY
           echo "Compression completed, result: \`$(du -h ./build/*)\`" >> $GITHUB_STEP_SUMMARY
 
-      # - name: Release
-      #   uses: softprops/action-gh-release@v1
-      #   if: startsWith(github.ref, 'refs/tags/')
-      #   with:
-      #     token: ${{ secrets.GITHUB_TOKEN }}
-      #     append_body: true
-      #   env:
-      #     GITHUB_REPOSITORY: infinimesh/tn_fake_feeder
+      - name: Upload Artifacts
+        uses: actions/upload-artifact@v3
+        with:
+          name: Executables
+          path: ./build/
 
       # - uses: wangyoucao577/go-release-action@v1.29
       #   with:
