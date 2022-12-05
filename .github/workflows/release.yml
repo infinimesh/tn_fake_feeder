@@ -14,19 +14,68 @@ jobs:
         goos: [linux, darwin]
         goarch: [amd64, arm64]
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v3
       - name: Check Release Tag
         id: make_context
-        run: echo ::set-output name=tag::${GITHUB_REF#refs/*/}
-      - uses: wangyoucao577/go-release-action@v1.29
+        run: echo "tag=${GITHUB_REF#refs/*/}" >> $GITHUB_OUTPUT
+      - uses: actions/setup-go@v3
         with:
-          github_token: ${{ secrets.GITHUB_TOKEN }}
-          goos: ${{ matrix.goos }}
-          goarch: ${{ matrix.goarch }}
-          overwrite: true
-          goversion: 1.19
-          ldflags: -s -w
-          executable_compression: upx
-          project_path: .
-          binary_name: "tn-feeder"
-          extra_files: track.db README.md
+          go-version: "1.19"
+
+      - run: |
+          echo '### Preparation Summary' >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "Build Tag: `${{ steps.make_context.outputs.tag }}`" >> $GITHUB_STEP_SUMMARY
+          echo "**Go Version**:" >> $GITHUB_STEP_SUMMARY
+          echo "```shell" >> $GITHUB_STEP_SUMMARY
+          echo "$(go version)" >> $GITHUB_STEP_SUMMARY
+          echo "```" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+
+      - run: |
+          echo '### Build for ${{matrix.goos}}/${{matrix.goarch}}' >> $$GITHUB_STEP_SUMMARY
+          GOOS=${{matrix.goos}} GOARCH=${{matrix.goarch}} CGO_ENABLED=1 go build -ldflags="-s -w"
+          echo "Build completed, result: \`$(du -h tn_fake_feeder)\`" >> $GITHUB_STEP_SUMMARY
+
+      - run: |
+          echo '### Compress' >> $$GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo '```' >> $GITHUB_STEP_SUMMARY
+          upx tn_fake_feeder >> $GITHUB_STEP_SUMMARY
+          echo '```' >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "Compression completed, result: \`$(du -h tn_fake_feeder)\`" >> $GITHUB_STEP_SUMMARY
+
+      - run: |
+          echo '### Make Release Archive' >> $$GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          tar -czvf tn_fake_feeder_${{matrix.goos}}_${{matrix.goarch}}.tar.gz tn_fake_feeder track.db README.md
+          echo "Completed, result: \`$(du -h *.tar.gz)\`" >> $GITHUB_STEP_SUMMARY
+
+      - uses: actions/upload-artifact@v3
+        with:
+          name: tn_fake_feeder_${{matrix.goos}}_${{matrix.goarch}}.tar.gz
+          path: tn_fake_feeder_${{matrix.goos}}_${{matrix.goarch}}.tar.gz
+
+      - name: Release
+        uses: softprops/action-gh-release@v1
+        if: startsWith(github.ref, 'refs/tags/')
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+          files: tn_fake_feeder_${{matrix.goos}}_${{matrix.goarch}}.tar.gz
+          append_body: true
+        env:
+          GITHUB_REPOSITORY: infinimesh/tn_fake_feeder
+
+      # - uses: wangyoucao577/go-release-action@v1.29
+      #   with:
+      #     github_token: ${{ secrets.GITHUB_TOKEN }}
+      #     goos: ${{ matrix.goos }}
+      #     goarch: ${{ matrix.goarch }}
+      #     overwrite: true
+      #     goversion: 1.19
+      #     ldflags: -s -w
+      #     executable_compression: upx
+      #     project_path: .
+      #     binary_name: "tn-feeder"
+      #     extra_files: track.db README.md
