@@ -1,0 +1,36 @@
+name: Delete old container images
+
+on:
+  schedule:
+    - cron: '0 0 * * *'  # every day at midnight
+  workflow_dispatch:
+jobs:
+  clean-ghcr:
+    name: Cleanup
+    runs-on: ubuntu-latest
+    permissions:
+        packages: write
+
+    steps:
+      - name: Untagged Images (> 1 day)
+        id: untagged
+        uses: snok/container-retention-policy@v2
+        with:
+          image-names: infinimesh/tn-faker
+          cut-off: A day ago UTC
+          account-type: org
+          org-name: infinimesh
+          untagged-only: true
+          token: ${{ secrets.GITHUB_TOKEN }}
+      - name: Summary
+        run: |
+          echo "### Deleted Untagged Images :wastebasket:" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          for c in $(echo ${{ steps.untagged.deleted }} | sed "s/,/ /g"); do
+              echo " - $c" >> $GITHUB_STEP_SUMMARY
+          done
+          echo "### Failed to delete Untagged Images :warning:" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          for c in $(echo ${{ steps.untagged.failed }} | sed "s/,/ /g"); do
+              echo " - $c" >> $GITHUB_STEP_SUMMARY
+          done
