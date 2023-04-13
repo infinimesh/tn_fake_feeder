@@ -25,8 +25,6 @@ type Truck struct {
 	wg   *sync.WaitGroup
 }
 
-var TN_TIME_FORMAT = "2006-02-01T15:04:05.999Z"
-
 type TruckReport struct {
 	Gps    []float64 `json:"gps"`
 	Sent   string    `json:"sent"`
@@ -59,7 +57,7 @@ func (t *Truck) Start(wg *sync.WaitGroup) {
 		if status.Report {
 			t.Report(t.Uuid, TruckReport{
 				Gps:    []float64{np.Lat, np.Lng},
-				Sent:   time.Now().Format(TN_TIME_FORMAT),
+				Sent:   time.Now().Format(time.RFC3339),
 				Status: status.Key,
 
 				Sats: rand.Intn(8) + 4,
