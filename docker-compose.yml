@@ -1,0 +1,8 @@
+version: '3.8'
+
+services:
+  tn-faker:
+    image: tn-faker
+    command: 0b04f3b0-6d0c-42c4-b970-24cd676693b6 5
+    volumes:
+      - ~/.default.infinimesh.yaml:/.default.infinimesh.yaml
