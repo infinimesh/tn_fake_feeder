@@ -35,6 +35,8 @@ type TruckReport struct {
 	Status string `json:"status"`
 
 	Cell []string `json:"cell"`
+
+	Sensors map[string]bool `json:"sensors"`
 }
 
 func (t *Truck) Stop() {
@@ -47,6 +49,7 @@ func (t *Truck) Start(wg *sync.WaitGroup) {
 
 	status := t.Status()
 	hold := 0
+
 	for {
 
 		if status.SkipMove {
@@ -58,6 +61,16 @@ func (t *Truck) Start(wg *sync.WaitGroup) {
 		t.Point = n
 
 		if status.Report {
+
+			sensors := make(map[string]bool)
+
+			if left := sensor_chooser.Pick(); left != nil {
+				sensors["left"] = *left
+			}
+			if right := sensor_chooser.Pick(); right != nil {
+				sensors["right"] = *right
+			}
+
 			t.Report(t.Uuid, TruckReport{
 				Gps:    []float64{np.Lat, np.Lng},
 				Sent:   time.Now().Format(time.RFC3339),
@@ -66,6 +79,8 @@ func (t *Truck) Start(wg *sync.WaitGroup) {
 				Sats:  rand.Intn(8) + 4,
 				Cell:  t.Cell(),
 				Speed: int(50 * 1 / t.Speed.Seconds()),
+
+				Sensors: sensors,
 			})
 		} else {
 			fmt.Printf("Truck(%s) is %s, won't report\n", t.Uuid, status.Output(status.Key))
@@ -119,6 +134,17 @@ var cell_protocol_chooser, _ = wr.NewChooser(
 	wr.Choice[string]{Item: "4G", Weight: 40},
 	wr.Choice[string]{Item: "3G", Weight: 20},
 	wr.Choice[string]{Item: "2G", Weight: 5},
+)
+
+var (
+	_true  = true
+	_false = false
+)
+
+var sensor_chooser, _ = wr.NewChooser(
+	wr.Choice[*bool]{Item: nil, Weight: 5},
+	wr.Choice[*bool]{Item: &_false, Weight: 10},
+	wr.Choice[*bool]{Item: &_true, Weight: 85},
 )
 
 func (t *Truck) Cell() []string {
