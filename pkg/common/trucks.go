@@ -26,11 +26,14 @@ type Truck struct {
 }
 
 type TruckReport struct {
-	Gps    []float64 `json:"gps"`
-	Sent   string    `json:"sent"`
-	Status string    `json:"status"`
+	Sent string `json:"sent"`
 
-	Sats int      `json:"sats"`
+	Gps   []float64 `json:"gps"`
+	Sats  int       `json:"sats"`
+	Speed int       `json:"speed"`
+
+	Status string `json:"status"`
+
 	Cell []string `json:"cell"`
 }
 
@@ -60,8 +63,9 @@ func (t *Truck) Start(wg *sync.WaitGroup) {
 				Sent:   time.Now().Format(time.RFC3339),
 				Status: status.Key,
 
-				Sats: rand.Intn(8) + 4,
-				Cell: t.Cell(),
+				Sats:  rand.Intn(8) + 4,
+				Cell:  t.Cell(),
+				Speed: int(50 * 1 / t.Speed.Seconds()),
 			})
 		} else {
 			fmt.Printf("Truck(%s) is %s, won't report\n", t.Uuid, status.Output(status.Key))
