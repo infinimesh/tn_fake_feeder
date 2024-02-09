@@ -169,7 +169,7 @@ func main() {
 			tags = append(tags, fmt.Sprintf("tn:number_plate_trailer:%s_%s", plate.Country, plate.Number))
 		}
 
-		res, err := devc.Create(ctx, &devpb.CreateRequest{
+		req := &devpb.CreateRequest{
 			Device: &devpb.Device{
 				Title:       fmt.Sprintf("sim-truck-%d", i),
 				Enabled:     true,
@@ -177,7 +177,21 @@ func main() {
 				Certificate: nil,
 			},
 			Namespace: namespace,
-		})
+		}
+
+		if i == 0 {
+			req.Device.Config, _ = structpb.NewStruct(map[string]interface{}{
+				"infinimesh.timeseries": map[string]interface{}{
+					"enabled": true,
+					"include_metrics": []string{
+						"speed",
+						"sats",
+					},
+				},
+			})
+		}
+
+		res, err := devc.Create(ctx, req)
 		if err != nil {
 			panic(err)
 		}
