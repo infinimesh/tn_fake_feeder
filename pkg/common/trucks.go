@@ -43,6 +43,20 @@ func (t *Truck) Stop() {
 	t.stop = true
 }
 
+func init() {
+	rand.New(
+		rand.NewSource(time.Now().UnixNano()),
+	)
+
+	go func() {
+		for now := range time.NewTicker(time.Hour * 24).C {
+			rand.New(
+				rand.NewSource(now.UnixNano()),
+			)
+		}
+	}()
+}
+
 func (t *Truck) Start(wg *sync.WaitGroup) {
 	t.stop = false
 	t.wg = wg
