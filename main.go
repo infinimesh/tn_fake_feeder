@@ -70,7 +70,7 @@ func main() {
 		panic(err)
 	}
 
-	config_path := path.Join(home, ".app.infinimesh.yaml")
+	config_path := path.Join(home, ".default.infinimesh.yaml")
 	fmt.Printf("Config used from path: %s\n", config_path)
 
 	config_bytes, err := os.ReadFile(config_path)
