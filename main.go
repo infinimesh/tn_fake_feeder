@@ -70,7 +70,7 @@ func main() {
 		panic(err)
 	}
 
-	config_path := path.Join(home, ".default.infinimesh.yaml")
+	config_path := path.Join(home, ".app.infinimesh.yaml")
 	fmt.Printf("Config used from path: %s\n", config_path)
 
 	config_bytes, err := os.ReadFile(config_path)
@@ -210,15 +210,20 @@ skip_cleanup:
 		}(res.GetDevice())
 
 		if i == 0 {
-			config, _ := structpb.NewStruct(map[string]interface{}{
+			config, err := structpb.NewStruct(map[string]interface{}{
 				"infinimesh.timeseries": map[string]interface{}{
 					"enabled": true,
-					"include_metrics": []string{
+					"include_metrics": []interface{}{
 						"speed",
 						"sats",
 					},
 				},
 			})
+			if err != nil {
+				fmt.Printf("Error creating config: %v\n", err)
+				return
+			}
+
 			_, err = devc.PatchConfig(ctx, &devpb.Device{
 				Uuid:   res.GetDevice().GetUuid(),
 				Config: config,
