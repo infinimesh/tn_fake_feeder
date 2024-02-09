@@ -90,7 +90,7 @@ func (t *Truck) Start(wg *sync.WaitGroup) {
 				Sent:   time.Now().Format(time.RFC3339),
 				Status: status.Key,
 
-				Sats:  rand.Intn(8) + 4,
+				Sats:  sats_chooser.Pick(),
 				Cell:  t.Cell(),
 				Speed: int(120 * 1 / t.Speed.Seconds()),
 
@@ -180,3 +180,11 @@ func (t *Truck) Cell() []string {
 		strconv.Itoa(rand.Intn(1200) - 600),
 	}
 }
+
+var sats_chooser, _ = wr.NewChooser(
+	wr.Choice[int]{Item: 0, Weight: 10},
+	wr.Choice[int]{Item: 2, Weight: 20},
+	wr.Choice[int]{Item: 3, Weight: 30},
+	wr.Choice[int]{Item: 4, Weight: 30},
+	wr.Choice[int]{Item: 8, Weight: 20},
+)
