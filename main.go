@@ -117,6 +117,24 @@ func main() {
 
 	fmt.Println("gRPC Connection Established")
 
+	fmt.Println("Cleaning up the old devices")
+	devices, err := devc.List(ctx, &pb.QueryRequest{
+		Namespace: &namespace,
+	})
+	if err != nil {
+		fmt.Printf("Error listing devices: %v\n", err)
+		goto skip_cleanup
+	}
+
+	for _, dev := range devices.Devices {
+		fmt.Printf("Deleting device %s(%s)\n", dev.Title, dev.Uuid)
+		_, err := devc.Delete(ctx, dev)
+		if err != nil {
+			fmt.Printf("[WARN] Error deleting device: %v", err)
+		}
+	}
+
+skip_cleanup:
 	rows := db.Point.Count(db.Point{})
 	fmt.Printf("Amount of waypoints found: %d\n", rows)
 
