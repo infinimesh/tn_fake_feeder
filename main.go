@@ -179,18 +179,6 @@ func main() {
 			Namespace: namespace,
 		}
 
-		if i == 0 {
-			req.Device.Config, _ = structpb.NewStruct(map[string]interface{}{
-				"infinimesh.timeseries": map[string]interface{}{
-					"enabled": true,
-					"include_metrics": []string{
-						"speed",
-						"sats",
-					},
-				},
-			})
-		}
-
 		res, err := devc.Create(ctx, req)
 		if err != nil {
 			panic(err)
@@ -202,6 +190,25 @@ func main() {
 				fmt.Printf("[WARN] Error deleting device: %v", err)
 			}
 		}(res.GetDevice())
+
+		if i == 0 {
+			config, _ := structpb.NewStruct(map[string]interface{}{
+				"infinimesh.timeseries": map[string]interface{}{
+					"enabled": true,
+					"include_metrics": []string{
+						"speed",
+						"sats",
+					},
+				},
+			})
+			_, err = devc.PatchConfig(ctx, &devpb.Device{
+				Uuid:   res.GetDevice().GetUuid(),
+				Config: config,
+			})
+			if err != nil {
+				fmt.Printf("[WARN] Couldn't patch config for device %s: %v", res.GetDevice().GetUuid(), err)
+			}
+		}
 
 		truck := &common.Truck{
 			Uuid:  res.GetDevice().GetUuid(),
