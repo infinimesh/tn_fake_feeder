@@ -92,7 +92,7 @@ func (t *Truck) Start(wg *sync.WaitGroup) {
 
 				Sats:  rand.Intn(8) + 4,
 				Cell:  t.Cell(),
-				Speed: int(50 * 1 / t.Speed.Seconds()),
+				Speed: int(120 * 1 / t.Speed.Seconds()),
 
 				Sensors: sensors,
 			})
@@ -110,6 +110,13 @@ func (t *Truck) Start(wg *sync.WaitGroup) {
 		} else {
 			status = t.Status()
 			hold = 0
+		}
+
+		if acceleration := rand.Intn(2) - 1; acceleration != 0 {
+			t.Speed = t.Speed + time.Duration(acceleration)*time.Second
+			if t.Speed == 0 || t.Speed > time.Second*5 {
+				t.Speed = time.Second * 3
+			}
 		}
 	}
 
