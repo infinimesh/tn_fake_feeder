@@ -14,6 +14,7 @@ import (
 	"time"
 
 	pb "github.com/infinimesh/proto/node"
+	"github.com/infinimesh/proto/node/access"
 	devpb "github.com/infinimesh/proto/node/devices"
 	"github.com/infinimesh/proto/node/namespaces"
 	"github.com/infinimesh/proto/shadow"
@@ -145,7 +146,9 @@ func main() {
 	}
 
 	pool := make([]*common.Truck, n_trucks)
-	uuids := make([]string, n_trucks)
+	token_req := &pb.DevicesTokenRequest{
+		Devices: make(map[string]access.Level),
+	}
 
 	for i := 0; i < n_trucks; i++ {
 
@@ -168,12 +171,10 @@ func main() {
 
 		res, err := devc.Create(ctx, &devpb.CreateRequest{
 			Device: &devpb.Device{
-				Title:   fmt.Sprintf("sim-truck-%d", i),
-				Enabled: true,
-				Tags:    tags,
-				Certificate: &devpb.Certificate{
-					PemData: common.SAMPLE_CERT,
-				},
+				Title:       fmt.Sprintf("sim-truck-%d", i),
+				Enabled:     true,
+				Tags:        tags,
+				Certificate: nil,
 			},
 			Namespace: namespace,
 		})
@@ -198,13 +199,10 @@ func main() {
 		}
 
 		pool[i] = truck
-		uuids[i] = truck.Uuid
+		token_req.Devices[truck.Uuid] = access.Level_MGMT
 	}
 
-	res, err := devc.MakeDevicesToken(ctx, &pb.DevicesTokenRequest{
-		Devices: uuids,
-		Post:    true,
-	})
+	res, err := devc.MakeDevicesToken(ctx, token_req)
 	if err != nil {
 		fmt.Printf("Error generating token: %v\n", err)
 		return
